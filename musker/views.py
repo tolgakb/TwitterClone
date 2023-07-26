@@ -1,7 +1,10 @@
 from django.shortcuts import redirect, render
 from .models import Profile, Tweet
 from django.contrib import messages
-from .forms import TweetForm
+from .forms import TweetForm, SignUpForm
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm
+from django import forms
 
 # Create your views here.
 def home(request):
@@ -55,3 +58,42 @@ def profile(request, pk):
     else:
         messages.success(request, ("You must be logged in to view this page."))
         return redirect('home')
+
+def login_user(request):
+
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username = username, password = password)
+        if user is not None:
+            login(request, user)
+            messages.success(request, "You have been successfully logged in!")
+            return redirect("home")
+        else:
+            messages.success(request,"There was an error loggin in. Please try again")
+            return redirect("login")
+    else:
+        return render(request, "login.html", {})
+
+
+def logout_user(request):
+    logout(request)
+    messages.success(request, "You have been logout.")
+    return redirect("home")
+
+def register_user(request):
+
+    form = SignUpForm()
+
+    if request.method == "POST":
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password1']
+            user = authenticate(username = username, password = password)
+            login(request, user)
+            messages.success(request, "You hava successfully registered.Welcome!")
+            return redirect('home')
+
+    return render(request, "register.html", {"form": form})
