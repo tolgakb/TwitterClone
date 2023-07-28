@@ -29,15 +29,17 @@
                                             @{{tweet.user.username}}
                                             - {{tweet.number_of_likes}} Likes
                                             {% if user in tweet.likes.all %}
-                                                <a href="{% url 'tweet_like' tweet.id %}">                                            
-                                                    <i class="fa-solid fa-heart" style="color:red"></i>
-                                                </a>
-                                            {% else %}    
-                                                <a href="{% url 'tweet_like' tweet.id %}">
-                                                    <i class="fa fa-heart-o" style="color:red"></i>
-                                                </a>
+                                                <a href="{% url 'tweet_like' tweet.id %}"><i class="fa-solid fa-heart" style="color:red"></i></a>
+                                            {% else %}<a href="{% url 'tweet_like' tweet.id %}"><i class="fa fa-heart-o" style="color:red"></i></a>
                                             {% endif %}
-
+                                            &nbsp;&nbsp;
+                                            <a href="{% url 'tweet_show' tweet.id %}"><i class="fa-solid fa-share" style="color:gray"></i></a>
+                                            &nbsp;&nbsp;
+                                            {% if request.user.username == profile.user.username %}
+                                                <a href="{% url 'delete_tweet' tweet.id %}"><i class="fas fa-trash-alt" style="color:gray"></i></a>
+                                            {% endif %}
+                                            &nbsp;&nbsp;
+                                            <a href="{% url 'edit_tweet' tweet.id %}"><i class="fas fa-edit" style="color:gray"></i></a>
                                         </small>
                                     </div>
                                 </div>
@@ -52,13 +54,43 @@
                     <img src="{{profile.profile_image.url}}" class="rounded-circle">
                 {% endif %}
                 <br><br>
+                {% if profile.homepage_link %}
+                    <a href="{{profile.homepage_link}}" target="new">
+                        <i class="fa-solid fa-link" style="color:gray"></i></a> 
+                {% endif %}
+                &nbsp;&nbsp;
+                {% if profile.facebook_link %}
+                    <a href="{{profile.facebook_link}}" target="new">
+                        <i class="fa-brands fa-facebook-f" style="color:gray"></i></a> 
+                {% endif %}
+                &nbsp;&nbsp;
+                {% if profile.instagram_link %}
+                    <a href="{{profile.instagram_link}}" target="new">
+                        <i class="fa-brands fa-instagram" style="color:gray"></i></a> 
+                {% endif %}
+                &nbsp;&nbsp;
+                {% if profile.linkedin_link %}
+                    <a href="{{profile.linkedin_link}}" target="new">
+                        <i class="fa-brands fa-linkedin-in" style="color:gray"></i></a> 
+                {% endif %}
+                <br><br>
+                {% if profile.profile_bio %}
+                       <p align="justify">{{profile.profile_bio}}</p> 
+                {% endif %}
                 <div class="card">
                     <h5 class="card-header">Follows</h5>
                     <div class="card-body">
                       <p class="card-text">                          
                         {% for following in profile.follows.all  %}
-                            <a href="{% url 'profile' following.user.id %}">@{{following}}</a><br>
+                            <a href="{% url 'profile' following.user.id %}">@{{following}}</a>
+                            <a href="{% url 'unfollow' following.user.id  %}"><i class="fa fa-user-minus small" style="color:gray">
+
+                            </i></a><br>
                         {% endfor %}</p>
+                    </div>
+                    <div class="card-footer text-end">
+                        <a href="{% url 'follows' profile.user.id %}"
+                            class="btn btn-sm btn-outline-secondary">See All...</a>
                     </div>
                 </div>
                 <br><br>
@@ -66,9 +98,24 @@
                     <h5 class="card-header">Followed By</h5>
                     <div class="card-body">
                       <p class="card-text">                          
-                        {% for following in profile.followed_by.all  %}
-                            <a href="{% url 'profile' following.user.id %}">@{{following}}</a><br>
-                        {% endfor %}
+                        {% for following in profile.followed_by.all|slice:3 %}
+                                <a href="{% url 'profile' following.user.id %}">@{{ following }}</a>&nbsp;&nbsp;
+
+                            {% if following in profile.follows.all %}
+                                <a href="{% url 'unfollow' following.user.id %}">
+                                    <i class="fa fa-user-minus small" style="color:gray"></i>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'follow' following.user.id %}">
+                                    <i class="fa fa-user-plus small" style="color:gray"></i>
+                                </a>
+                            {% endif %}
+                                <br/>
+			            {% endfor %}<br/></p>
+                    </div>
+                    <div class="card-footer text-end">
+                        <a href="{% url 'followers' profile.user.id %}"
+                            class="btn btn-sm btn-outline-secondary">See All...</a>
                     </div>
                 </div> 
                 <br>

@@ -37,6 +37,39 @@ def profile_list(request):
         messages.success(request, ("You must be logged in to view this page."))
         return redirect('home')
     
+def unfollow(request, pk):
+    if request.user.is_authenticated:
+        #Get the profile to unfollow
+        profile = Profile.objects.get(user_id = pk)
+        #Unfollow the user
+        request.user.profile.follows.remove(profile)
+        #Save our profile
+        request.user.profile.save()
+
+        messages.success(request, (f"You have successfully unfollowed {profile.user.username}"))
+        return redirect(request.META.get("HTTP_REFERER"))
+
+    else:
+        messages.success(request, ("You must be logged in to view this page."))
+        return redirect('home')
+    
+def follow(request, pk):
+    if request.user.is_authenticated:
+        #Get the profile to unfollow
+        profile = Profile.objects.get(user_id = pk)
+        #Unfollow the user
+        request.user.profile.follows.add(profile)
+        #Save our profile
+        request.user.profile.save()
+
+        messages.success(request, (f"You have successfully followed {profile.user.username}"))
+        return redirect(request.META.get("HTTP_REFERER"))
+
+    else:
+        messages.success(request, ("You must be logged in to view this page."))
+        return redirect('home')    
+
+    
 def profile(request, pk):
     if request.user.is_authenticated:
         profile = Profile.objects.get(user_id = pk)
@@ -57,6 +90,32 @@ def profile(request, pk):
             current_user_profile.save()
 
         return render(request, "profile.html", {"profile": profile, "tweets": tweets})
+    else:
+        messages.success(request, ("You must be logged in to view this page."))
+        return redirect('home')
+    
+def followers(request, pk):
+    #query to user exclude the request user
+    if request.user.is_authenticated:
+        if request.user.id == pk:
+            profiles = Profile.objects.get(user_id = pk )
+            return render(request, 'followers.html', {'profiles': profiles})
+        else:
+            messages.success(request, ("That's not your page."))
+            return redirect('home')
+    else:
+        messages.success(request, ("You must be logged in to view this page."))
+        return redirect('home')
+
+def follows(request, pk):
+#query to user exclude the request user
+    if request.user.is_authenticated:
+        if request.user.id == pk:
+            profiles = Profile.objects.get(user_id = pk )
+            return render(request, 'follows.html', {'profiles': profiles})
+        else:
+            messages.success(request, ("That's not your page."))
+            return redirect('home')
     else:
         messages.success(request, ("You must be logged in to view this page."))
         return redirect('home')
@@ -137,3 +196,58 @@ def tweet_like(request, pk):
     else:
         messages.success(request, ("You must be logged in to view this page."))
         return redirect('home')
+    
+def tweet_show(request,pk):
+    
+    tweet = get_object_or_404(Tweet, id = pk)
+    if tweet:
+        return render(request, "show_tweet.html", {'tweet': tweet})
+    else:
+        messages.success(request, ("That tweet does not exist"))
+        return redirect('home')
+    
+def delete_tweet(request, pk):
+    if request.user.is_authenticated:
+        tweet = get_object_or_404(Tweet, id = pk)
+        #Check to see if you own the meep
+        if request.user.username == tweet.user.username:
+            #Delete the tweet
+            tweet.delete()
+            messages.success(request, ("Your tweet has been deleted."))
+            return redirect(request.META.get("HTTP_REFERER"))
+        else:
+            messages.success(request, ("You do not own that tweet."))
+            return redirect('home')
+    else:
+        messages.success(request, ("Please log in to continue"))
+        return redirect(request.META.get("HTTP_REFERER"))
+    
+
+def edit_tweet(request,pk):
+    if request.user.is_authenticated:
+        #Check to see if you own the meep
+        tweet = get_object_or_404(Tweet, id = pk)
+        if request.user.username == tweet.user.username:
+            form = TweetForm(request.POST or None, instance = tweet)
+            if request.method == "POST":
+                if form.is_valid():
+                    tweet = form.save(commit=False)
+                    tweet.user = request.user
+                    tweet.save()
+                    messages.success(request, "Your tweet has been edited!")
+                    return redirect("home")
+            else:
+                return render(request, "edit_tweet.html", {'form': form, 'tweet': tweet})
+
+            return redirect(request.META.get("HTTP_REFERER"))
+        else:
+            messages.success(request, ("You do not own that tweet."))
+            return redirect('home')
+    else:
+        messages.success(request, ("Please log in to continue"))
+        return redirect('home')
+    
+
+
+
+    
