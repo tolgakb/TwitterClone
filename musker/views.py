@@ -247,6 +247,32 @@ def edit_tweet(request,pk):
         messages.success(request, ("Please log in to continue"))
         return redirect('home')
     
+def search(request):
+    if request.method == "POST":
+        #Grab the form field input
+        search = request.POST['search']
+        #Search the database
+        searched = Tweet.objects.filter(body__contains = search)
+
+        return render(request, 'search.html', {'search': search, 'searched': searched,  })
+    
+    else:
+        return render(request, 'search.html', {})
+
+def search_user(request):
+    if request.method == "POST":
+        #Grab the form field input
+        search = request.POST['search']
+        #Search the database
+        searched = User.objects.filter(username__contains = search)
+
+        return render(request, 'search_user.html', {'search': search, 'searched': searched,  })
+    
+    else:
+        return render(request, 'search_user.html', {})
+    
+
+
 
 
 
